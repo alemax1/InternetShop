@@ -9,7 +9,7 @@ from .permissions import IsAdminOrReadOnly
 from .filters import *
 
 
-class ProductsAPIList(generics.ListCreateAPIView):
+class ProductsViewSet(viewsets.ModelViewSet):
     queryset = Products.objects.all()
     serializer_class = ProductsSerializer
     pagination_class = LimitOffsetPagination
@@ -21,50 +21,14 @@ class ProductsAPIList(generics.ListCreateAPIView):
     filterset_class = ProductsFilter
 
 
-class ProductsAPIUpdate(generics.RetrieveUpdateAPIView):
-    queryset = Products.objects.all()
-    serializer_class = ProductsSerializer
-    permission_classes = (IsAdminOrReadOnly, )
-
-
-class ProductsAPIRemove(generics.RetrieveDestroyAPIView):
-    queryset = Products.objects.all()
-    serializer_class = ProductsSerializer
-    permission_classes = (IsAdminOrReadOnly, )
-
-
-class StorageAPIList(generics.ListCreateAPIView):
+class StorageViewSet(viewsets.ModelViewSet):
     queryset = ProductsStorage.objects.all()
     serializer_class = ProductsStorageSerializer
     permission_classes = (IsAdminUser,)
 
 
-class StorageAPIUpdate(generics.RetrieveUpdateAPIView):
-    queryset = ProductsStorage.objects.all()
-    serializer_class = ProductsStorageSerializer
-    permission_classes = (IsAdminUser,)
-
-
-class StorageAPIRemove(generics.RetrieveDestroyAPIView):
-    queryset = ProductsStorage.objects.all()
-    serializer_class = ProductsStorageSerializer
-    permission_classes = (IsAdminUser,)
-
-
-class ProductSignAPIList(generics.ListCreateAPIView):
+class ProductSignViewSet(viewsets.ModelViewSet):
     queryset = ProductSign.objects.all()
-    serializer_class = ProductSignSerializer
-    permission_classes = (IsAdminUser,)
-
-
-class ProductSignAPIUpdate(generics.RetrieveUpdateAPIView):
-    queryset = ProductSign
-    serializer_class = ProductSignSerializer
-    permission_classes = (IsAdminUser,)
-
-
-class ProductSignAPIRemove(generics.RetrieveDestroyAPIView):
-    queryset = ProductsStorage.objects.all()
     serializer_class = ProductSignSerializer
     permission_classes = (IsAdminUser,)
 
