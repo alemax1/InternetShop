@@ -2,7 +2,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from rest_framework import generics
+from rest_framework import generics, viewsets
 
 from .serializers import *
 from .permissions import IsAdminOrReadOnly
