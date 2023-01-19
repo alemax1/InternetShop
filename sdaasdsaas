@@ -1,13 +1,6 @@
 
 {  
-"postgres": {
-    "host": "192.168.2.142",
-    "port": "4001",
-    "user": "zuzex",
-    "db": "wifi",
-    "password": "zuzex2023",
-    "ssl": "disable"
-},
+
 "users":{
     "user": "AIDeba4bbd5d764cd8c067e95e44246e776", "pass":"a58bcce96511257d197eb066cf990a2b"}
 }
