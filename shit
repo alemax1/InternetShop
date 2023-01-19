@@ -1,0 +1,130 @@
+package main
+
+import (
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
+	"strconv"
+	"time"
+
+	"github.com/MicahParks/wigole"
+	"github.com/MicahParks/wigole/api/network/search"
+	_ "github.com/lib/pq"
+	"github.com/spf13/viper"
+)
+
+type Response struct {
+	Trilat      float64
+	Trilong     float64
+	Ssid        string
+	Qos         int
+	Transid     string
+	Firsttime   time.Time
+	Lasttime    time.Time
+	Lastupdt    time.Time
+	Netid       string
+	Name        string
+	Type        string
+	Comment     string
+	Wep         string
+	Bcninterval int
+	Freenet     string
+	Dhcp        string
+	Paynet      string
+	Userfound   bool
+	Channel     int
+	Encryption  string
+	Country     string
+	Region      string
+	City        string
+	Housenumber string
+	Road        string
+	Postalcode  string
+}
+
+func main() {
+	viper.AddConfigPath(".")
+	viper.SetConfigFile("config.json")
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatal("error trying read from config: %w", err)
+	}
+
+	_, err := NewPG()
+	if err != nil {
+		log.Fatalf("Cannot create postgres connection: %v", err)
+	}
+
+	var arr []Response
+
+	u := wigole.NewUser(viper.GetString("users.user"), viper.GetString("users.pass"))
+
+	// s := wigole.NewSearch()
+
+	s := search.New()
+
+	s.
+	s.Longrange1 = 2.2536
+	s.Longrange2 = 2.4170
+	s.Latrange1 = 48.9019
+	s.Latrange2 = 48.8155
+
+	i := 0
+	for {
+		fmt.Println(i)
+		s.SearchAfter = strconv.Itoa(i)
+		resp, err := s.Do(u)
+		if err != nil {
+			if errors.Is(err, wigole.ErrFail) {
+				println(err.Error())
+				return
+			}
+			if err == wigole.ErrAuth {
+				println("Failed to authenticate with creds.json.")
+				return
+			}
+			panic(err)
+		}
+
+		var rs Response
+
+		for _, r := range resp.Results {
+			bytes, err := json.Marshal(r)
+			if err != nil {
+				log.Printf("error: %v", err)
+			}
+
+			if err := json.Unmarshal(bytes, &rs); err != nil {
+				log.Printf("error: %v", err)
+			}
+
+			arr = append(arr, rs)
+		}
+		fmt.Println(resp.Results[0].Lasttime)
+
+		i += 100
+	}
+}
+
+func NewPG() (*sql.DB, error) {
+	dsn := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=%s",
+		viper.GetString("postgres.host"),
+		viper.GetString("postgres.user"),
+		viper.GetString("postgres.db"),
+		viper.GetString("postgres.password"),
+		viper.GetString("postgres.port"),
+		viper.GetString("postgres.ssl"),
+	)
+
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = db.Ping(); err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
