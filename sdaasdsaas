@@ -1,0 +1,126 @@
+
+{  
+"postgres": {
+    "host": "192.168.2.142",
+    "port": "4001",
+    "user": "zuzex",
+    "db": "wifi",
+    "password": "zuzex2023",
+    "ssl": "disable"
+},
+"users":{
+    "user": "AIDeba4bbd5d764cd8c067e95e44246e776", "pass":"a58bcce96511257d197eb066cf990a2b"}
+}
+
+{
+    "closestLat": "48.9019",
+    "closestLong": "2.2536",
+    "latrange1": "48.9019",
+    "latrange2": "48.8155",
+    "longrange1": "2.2536",
+    "longrange2": "2.4170"
+}
+
+func save(table string, results []Result) error {
+    tx, err := db.Begin()
+    if err != nil {
+        return fmt.Errorf("begin: %v", err)
+    }
+
+    defer func() {
+        if err != nil {
+            if err1 := tx.Rollback(); err1 != nil {
+                logrus.Errorln("failed rollback: ", err1)
+            }
+            return
+        }
+        if err := tx.Commit(); err != nil {
+            logrus.Errorln("failed commit: ", err)
+        }
+    }()
+
+    columns := "trilat, trilong, ssid, qos, transid, firsttime, lasttime, lastupdt, netid, name, type, comment, wep, bcninterval, freenet, dhcp, paynet, userfound, channel, encryption, country, region, city, housenumber, road, postalcode"
+
+    stmt, err := tx.Prepare(fmt.Sprintf(`INSERT INTO main.%s (%s) 
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26)
+        ON CONFLICT (ssid, netid) DO NOTHING`, table, columns))
+    if err != nil {
+        return fmt.Errorf("prepare: %v", err)
+    }
+
+    for i := range results {
+        if _, err = stmt.Exec(
+            results[i].Trilat,
+            results[i].Trilong,
+            results[i].Ssid,
+            results[i].Qos,
+            results[i].Transid,
+            results[i].Firsttime,
+            results[i].Lasttime,
+            results[i].Lastupdt,
+            results[i].Netid,
+            results[i].Name,
+            results[i].Type,
+            results[i].Comment,
+            results[i].Wep,
+            results[i].Bcninterval,
+            results[i].Freenet,
+            results[i].Dhcp,
+            results[i].Paynet,
+            results[i].Userfound,
+            results[i].Channel,
+            results[i].Encryption,
+            results[i].Country,
+            results[i].Region,
+            results[i].City,
+            results[i].Housenumber,
+            results[i].Road,
+            results[i].Postalcode,
+        ); err != nil {
+            return fmt.Errorf("exec: %v, res: %+v", err, results[i])
+        }
+    }
+    return nil
+}
+
+
+func NewPG() (*sql.DB, error) {
+    dsn := fmt.Sprintf("host=%s user=%s dbname=%s password=%s port=%s sslmode=%s",
+    viper.GetString("postgres.host"),
+    viper.GetString("postgres.user"),
+    viper.GetString("postgres.db"),
+    viper.GetString("postgres.password"),
+    viper.GetString("postgres.port"),
+    viper.GetString("postgres.ssl"),
+)
+
+db, err := sql.Open("postgres", dsn)
+if err != nil {
+    return nil, errors.Wrap(err, "Cannot create DB instance")
+}
+
+if err = db.Ping(); err != nil {
+    return nil, errors.Wrap(err, "Cannot ping just created DB instance")
+}
+
+return db, nil
+}
+
+
+
+
+
+
+
+ {"user": "AIDe330c6b3a949809c2eb31b4cf8d43df6", "pass":"5a08eb6684ea3ecec038255b3ab25dc3"},
+        {"user": "AIDd2baff60644872bb8a51e01ef5cf2196", "pass":"e3348e747e14a808a78393dd9de9196f"},
+        {"user": "AIDeba4bbd5d764cd8c067e95e44246e776", "pass":"a58bcce96511257d197eb066cf990a2b"},
+        {"user": "AID3c65983eecea93163a452c514157f0eb", "pass":"dda5620fd39c148701d192a7c73a5763"}
+        
+        
+        
+        
+        
+        https://github.com/MicahParks/wigole/
+        
+        
