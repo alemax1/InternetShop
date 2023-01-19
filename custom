@@ -1,0 +1,183 @@
+package main
+
+import (
+	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"time"
+)
+
+type Response struct {
+	Trilat      float64
+	Trilong     float64
+	Ssid        string
+	Qos         int
+	Transid     string
+	Firsttime   time.Time
+	Lasttime    time.Time
+	Lastupdt    time.Time
+	Netid       string
+	Name        string
+	Type        string
+	Comment     string
+	Wep         string
+	Bcninterval int
+	Freenet     string
+	Dhcp        string
+	Paynet      string
+	Userfound   bool
+	Channel     int
+	Encryption  string
+	Country     string
+	Region      string
+	City        string
+	Housenumber string
+	Road        string
+	Postalcode  string
+}
+
+type NetSearchResponse struct {
+	Success               bool
+	TotalResults          int
+	First                 int
+	Last                  int
+	ResultCount           int
+	Results               []*WiFiNetworkWithLocation
+	SearchAfter           string
+	SearchAfterDeprecated int `json:"search_after"`
+}
+
+type WiFiNetworkWithLocation struct {
+	LocationData []*WiFiLocation
+	WiFiNetwork
+}
+
+type WiFiNetwork struct {
+	Comment     string
+	Wep         string
+	Bcninterval int
+	Freenet     string
+	Dhcp        string
+	Paynet      string
+	Channel     int
+	Encryption  string
+	Network
+}
+
+type Network struct {
+	Trilat      float64
+	Trilong     float64
+	Ssid        string
+	Qos         int
+	Transid     string
+	Firsttime   time.Time
+	Lasttime    time.Time
+	Lastupdt    time.Time
+	Netid       string
+	Type        string
+	Name        string
+	Userfound   bool
+	Country     string
+	Region      string
+	City        string
+	Housenumber string
+	Road        string
+	Postalcode  string
+}
+
+type WiFiLocation struct {
+	Alt             int
+	Accuracy        float64
+	Lastupdt        time.Time
+	Latitude        float64
+	Longitude       float64
+	Month           string
+	Ssid            string
+	Time            time.Time
+	Signal          int
+	Name            string
+	NetId           string
+	Noise           float64
+	Snr             float64
+	Wep             string
+	Channel         int
+	EncryptionValue string
+}
+
+func main() {
+
+	req, err := http.NewRequest("GET", "https://api.wigle.net/api/v2/"+"network/search?searchAfter=200", bytes.NewBuffer([]byte("")))
+	req2, err := http.NewRequest("GET", "https://api.wigle.net/api/v2/"+"network/search?searchAfter=343", bytes.NewBuffer([]byte("")))
+	if err != nil {
+		log.Printf("error:%v", err)
+	}
+	username := "AIDeba4bbd5d764cd8c067e95e44246e776"
+	password := "a58bcce96511257d197eb066cf990a2b"
+	req.Header.Set("Authorization", "Basic "+basicAuth(username, password))
+	req2.Header.Set("Authorization", "Basic "+basicAuth(username, password))
+	c := http.Client{}
+	resp, err := c.Do(req)
+	resp2, err := c.Do(req2)
+	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes2, err := ioutil.ReadAll(resp2.Body)
+
+	var r NetSearchResponse
+	var r2 NetSearchResponse
+
+	if err := json.Unmarshal(bytes, &r); err != nil {
+		log.Println("dfsfdsfdsfsd")
+	}
+
+	if err := json.Unmarshal(bytes2, &r2); err != nil {
+		log.Println("dfsfdsfdsfsd")
+	}
+
+	a := r.Results
+	a2 := r2.Results
+
+	var b Response
+	var arr []Response
+
+	var b2 Response
+	var arr2 []Response
+
+	for _, val := range a {
+		bytes, err := json.Marshal(val)
+		if err != nil {
+			log.Println(err)
+		}
+
+		if err := json.Unmarshal(bytes, &b); err != nil {
+			log.Printf("err:%v", err)
+		}
+		arr = append(arr, b)
+	}
+
+	for _, val := range a2 {
+		bytes, err := json.Marshal(val)
+		if err != nil {
+			log.Println(err)
+		}
+
+		if err := json.Unmarshal(bytes, &b2); err != nil {
+			log.Printf("err:%v", err)
+		}
+		arr2 = append(arr2, b2)
+	}
+	fmt.Printf("%+v\n", arr[0])
+	fmt.Printf("%+v\n", arr[len(arr)-1])
+	if len(arr2) != 0 {
+		fmt.Printf("%+v\n", arr2[0])
+		fmt.Printf("%+v\n", arr2[len(arr2)-1])
+	}
+	fmt.Println(len(arr))
+}
+
+func basicAuth(username, password string) string {
+	auth := username + ":" + password
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
